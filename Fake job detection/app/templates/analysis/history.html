@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis History - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-clock-history text-cyan me-2"></i>Analysis History</h2>
+            <p class="text-muted small mb-0">Search and review your past job threat assessments.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent">
+                <i class="bi bi-search me-1"></i> Analyze New Job
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="saas-card mb-4 p-3">
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-md-6 col-lg-7">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0" placeholder="Search by job title or company name..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3">
+                <select name="level" class="form-select" onchange="this.form.submit()">
+                    <option value="" {% if not risk_filter %}selected{% endif %}>All Risk Categories</option>
+                    <option value="high" {% if risk_filter == 'high' %}selected{% endif %}>Potentially Suspicious (High)</option>
+                    <option value="medium" {% if risk_filter == 'medium' %}selected{% endif %}>Needs Verification (Medium)</option>
+                    <option value="low" {% if risk_filter == 'low' %}selected{% endif %}>Lower Risk (Low)</option>
+                </select>
+            </div>
+            <div class="col-md-2 col-lg-2 d-flex gap-2">
+                <button type="submit" class="btn btn-saas-primary w-100">Filter</button>
+                {% if search_query or risk_filter %}
+                    <a href="{{ url_for('analysis.history') }}" class="btn btn-saas-outline" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Records Table Card -->
+    <div class="saas-card">
+        {% if pagination.items %}
+            <div class="table-responsive">
+                <table class="saas-table">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Date Analyzed</th>
+                            <th>Risk Score</th>
+                            <th>Category</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in pagination.items %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('analysis.result', analysis_id=item.id) }}" class="fw-bold text-decoration-none text-dark">
+                                        {{ item.job_title }}
+                                    </a>
+                                </td>
+                                <td class="text-secondary">{{ item.company_name }}</td>
+                                <td class="text-muted small">{{ item.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <span class="fw-bold {% if item.risk_score >= thresh_high %}text-danger{% elif item.risk_score >= thresh_low %}text-warning{% else %}text-success{% endif %}">
+                                        {{ "%.1f"|format(item.risk_score) }} / 100
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if item.risk_score >= thresh_high %}
+                                        <span class="badge-risk-high"><i class="bi bi-exclamation-triangle-fill"></i> Potentially Suspicious</span>
+                                    {% elif item.risk_score >= thresh_low %}
+                                        <span class="badge-risk-medium"><i class="bi bi-exclamation-circle-fill"></i> Needs Verification</span>
+                                    {% else %}
+                                        <span class="badge-risk-low"><i class="bi bi-check-circle-fill"></i> Lower Risk</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('analysis.result', analysis_id=item.id) }}" class="btn btn-saas-outline" title="View Detailed Report">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <button type="button" class="btn btn-saas-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ item.id }}" title="Delete Record">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Delete Modal for each item -->
+                                    <div class="modal fade" id="deleteModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content text-start">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Delete Analysis Record</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to delete the analysis record for <strong>"{{ item.job_title }}"</strong> at <strong>{{ item.company_name }}</strong>?
+                                                    <div class="text-muted small mt-2">This action cannot be undone.</div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form method="POST" action="{{ url_for('analysis.delete_analysis', analysis_id=item.id) }}">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            {% if pagination.pages > 1 %}
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <div class="text-muted small">
+                        Showing page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} records)
+                    </div>
+                    <nav aria-label="History pagination">
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if pagination.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('analysis.history', page=pagination.prev_num, q=search_query, level=risk_filter) }}">Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                            {% endif %}
+
+                            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                {% if p %}
+                                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('analysis.history', page=p, q=search_query, level=risk_filter) }}">{{ p }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if pagination.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('analysis.history', page=pagination.next_num, q=search_query, level=risk_filter) }}">Next</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+
+        {% else %}
+            <!-- Empty state -->
+            <div class="empty-state py-5">
+                <div class="empty-state-icon">
+                    <i class="bi bi-inbox"></i>
+                </div>
+                {% if search_query or risk_filter %}
+                    <h5 class="fw-bold mb-1">No matching analyses found</h5>
+                    <p class="text-muted small mb-3">No evaluations matched your current search filters.</p>
+                    <a href="{{ url_for('analysis.history') }}" class="btn btn-saas-outline btn-sm">Clear Filters</a>
+                {% else %}
+                    <h5 class="fw-bold mb-1">Your analysis history is empty</h5>
+                    <p class="text-muted small mb-3">Run your first job screening to start building your record history.</p>
+                    <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent">
+                        <i class="bi bi-search me-1"></i> Screen a Job Now
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

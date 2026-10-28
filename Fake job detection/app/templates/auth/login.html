@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="saas-card shadow-sm p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Logo" width="44" height="44" class="mb-2">
+                    <h3 class="fw-bold">Sign In to JobSafeGuard</h3>
+                    <p class="text-muted small">Access your risk reports and screening dashboard</p>
+                </div>
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label for="{{ form.email.id }}" class="form-label">{{ form.email.label }}</label>
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@example.com", autocomplete="email") }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.email.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Field with Toggle -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label for="{{ form.password.id }}" class="form-label mb-0">{{ form.password.label }}</label>
+                        </div>
+                        <div class="input-group mt-1">
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="••••••••", autocomplete="current-password") }}
+                            <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-target="{{ form.password.id }}" aria-label="Toggle password visibility">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="mb-4 form-check">
+                        {{ form.remember_me(class="form-check-input") }}
+                        <label class="form-check-label small text-secondary" for="{{ form.remember_me.id }}">
+                            {{ form.remember_me.label.text }}
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid mb-3">
+                        {{ form.submit(class="btn btn-saas-primary btn-lg w-100") }}
+                    </div>
+                </form>
+
+                <div class="text-center mt-3 pt-3 border-top text-muted small">
+                    Don't have an account yet? 
+                    <a href="{{ url_for('auth.register') }}" class="fw-semibold text-primary text-decoration-none">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

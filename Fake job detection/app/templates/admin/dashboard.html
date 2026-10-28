@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger px-2 py-1"><i class="bi bi-shield-lock-fill me-1"></i> Administrator Area</span>
+            </div>
+            <h2 class="fw-bold mb-1">System Administration Console</h2>
+            <p class="text-muted small mb-0">Platform overview, user accounts, and system-wide threat telemetry.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.users') }}" class="btn btn-saas-outline">
+                <i class="bi bi-people me-1"></i> Manage Users
+            </a>
+            <a href="{{ url_for('admin.analyses') }}" class="btn btn-saas-outline">
+                <i class="bi bi-file-earmark-bar-graph me-1"></i> All Analyses
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Metrics Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon total"><i class="bi bi-people"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_users }}</div>
+                    <div class="stat-label">Registered Users</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon total"><i class="bi bi-journal-check"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_analyses }}</div>
+                    <div class="stat-label">System Analyses</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon high"><i class="bi bi-shield-x"></i></div>
+                <div>
+                    <div class="stat-value">{{ high_risk_count }}</div>
+                    <div class="stat-label">High Risk Solicitations</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon medium"><i class="bi bi-shield-exclamation"></i></div>
+                <div>
+                    <div class="stat-value">{{ medium_risk_count }}</div>
+                    <div class="stat-label">Needs Verification</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity & Analytics Grid -->
+    <div class="row g-4 mb-4">
+        <!-- System Risk Distribution -->
+        <div class="col-lg-5">
+            <div class="saas-card h-100">
+                <div class="saas-card-header">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-pie-chart text-cyan me-2"></i>Global Threat Distribution</h5>
+                </div>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="riskDistributionChart"
+                            data-high="{{ high_risk_count }}"
+                            data-medium="{{ medium_risk_count }}"
+                            data-low="{{ low_risk_count }}">
+                    </canvas>
+                </div>
+                <div class="text-center text-muted small mt-3">
+                    Aggregated across all registered candidate screenings.
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registered Users -->
+        <div class="col-lg-7">
+            <div class="saas-card h-100">
+                <div class="saas-card-header">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-lines-fill text-cyan me-2"></i>Recently Registered Users</h5>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-saas-outline">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="saas-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in recent_users %}
+                                <tr>
+                                    <td class="fw-semibold">{{ u.full_name }}</td>
+                                    <td class="text-secondary small">{{ u.email }}</td>
+                                    <td>
+                                        <span class="badge {% if u.is_admin %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ u.role }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent System Analyses -->
+    <div class="saas-card">
+        <div class="saas-card-header">
+            <h5 class="fw-bold mb-0"><i class="bi bi-activity text-cyan me-2"></i>Recent System Job Screenings</h5>
+            <a href="{{ url_for('admin.analyses') }}" class="btn btn-sm btn-saas-outline">View All Analyses</a>
+        </div>
+        <div class="table-responsive">
+            <table class="saas-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>User</th>
+                        <th>Risk Score</th>
+                        <th>Category</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in recent_analyses %}
+                        <tr>
+                            <td class="fw-semibold">{{ a.job_title }}</td>
+                            <td class="text-secondary">{{ a.company_name }}</td>
+                            <td class="text-muted small">{{ a.author.email if a.author else 'Deleted User' }}</td>
+                            <td>
+                                <span class="fw-bold {% if a.risk_score >= thresh_high %}text-danger{% elif a.risk_score >= thresh_low %}text-warning{% else %}text-success{% endif %}">
+                                    {{ "%.1f"|format(a.risk_score) }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if a.risk_score >= thresh_high %}
+                                    <span class="badge-risk-high">Potentially Suspicious</span>
+                                {% elif a.risk_score >= thresh_low %}
+                                    <span class="badge-risk-medium">Needs Verification</span>
+                                {% else %}
+                                    <span class="badge-risk-low">Lower Risk</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('analysis.result', analysis_id=a.id) }}" class="btn btn-sm btn-saas-outline">
+                                    Inspect
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

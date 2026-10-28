@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze Job or Internship - Fake Job Detection{% endblock %}
+
+{% block content %}
+<!-- Loading Overlay Modal Spinner -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-custom"></div>
+    <h4 class="fw-bold mb-1 text-white">Analyzing Job Posting...</h4>
+    <p class="text-light small mb-0">Evaluating NLP feature vectors, fee patterns, and threat heuristics.</p>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <!-- Header -->
+            <div class="mb-4">
+                <a href="{{ url_for('analysis.dashboard') }}" class="btn btn-sm btn-saas-outline mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+                <h2 class="fw-bold mb-1"><i class="bi bi-shield-check text-cyan me-2"></i>Job Risk Analysis</h2>
+                <p class="text-muted small">Fill in the job posting details and communication context to perform a comprehensive threat assessment.</p>
+            </div>
+
+            <div class="saas-card p-4 p-md-5">
+                <form method="POST" id="analyze-job-form" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <!-- Section 1: Basic Information -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3 text-secondary">
+                            <i class="bi bi-info-circle me-1 text-cyan"></i> 1. Posting Information
+                        </h5>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.job_title.id }}" class="form-label">
+                                    {{ form.job_title.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.job_title(class="form-control" + (" is-invalid" if form.job_title.errors else ""), placeholder="e.g. Remote Data Entry Assistant, Junior Python Developer") }}
+                                {% if form.job_title.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.job_title.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="{{ form.company_name.id }}" class="form-label">
+                                    {{ form.company_name.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.company_name(class="form-control" + (" is-invalid" if form.company_name.errors else ""), placeholder="e.g. Acme Tech Solutions Inc.") }}
+                                {% if form.company_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.company_name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.employment_type.id }}" class="form-label">
+                                    {{ form.employment_type.label }}
+                                </label>
+                                {{ form.employment_type(class="form-select" + (" is-invalid" if form.employment_type.errors else "")) }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.job_location.id }}" class="form-label">
+                                    {{ form.job_location.label }}
+                                </label>
+                                {{ form.job_location(class="form-control", placeholder="e.g. Remote, New York, Mumbai") }}
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="{{ form.salary_info.id }}" class="form-label">
+                                    {{ form.salary_info.label }}
+                                </label>
+                                {{ form.salary_info(class="form-control", placeholder="e.g. $4,000 / week or ₹30,000/month") }}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="{{ form.company_url.id }}" class="form-label">
+                                    {{ form.company_url.label }}
+                                </label>
+                                {{ form.company_url(class="form-control" + (" is-invalid" if form.company_url.errors else ""), placeholder="https://example.com/careers/posting") }}
+                                {% if form.company_url.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.company_url.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="form-text small">Include full URL (starting with http:// or https://) if available.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Full Job Description -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3 text-secondary">
+                            <i class="bi bi-file-text me-1 text-cyan"></i> 2. Description or Offer Letter Text
+                        </h5>
+
+                        <div class="mb-3">
+                            <label for="{{ form.job_description.id }}" class="form-label">
+                                Job Description / Offer Letter Content <span class="text-danger">*</span>
+                            </label>
+                            {{ form.job_description(class="form-control font-monospace" + (" is-invalid" if form.job_description.errors else ""), rows=9, placeholder="Paste the complete job post, email communication, or offer letter here...") }}
+                            {% if form.job_description.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.job_description.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="form-text small">Paste the entire posting including contact details, requirements, and instructions for maximum detection accuracy.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Threat Indicators & Interview Conduct -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold border-bottom pb-2 mb-3 text-secondary">
+                            <i class="bi bi-shield-exclamation me-1 text-danger"></i> 3. Recruitment Red Flags & Interview Status
+                        </h5>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.interview_mode.id }}" class="form-label">
+                                    {{ form.interview_mode.label }}
+                                </label>
+                                {{ form.interview_mode(class="form-select") }}
+                                <div class="form-text small">Indicate whether formal video/in-person screening occurred.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Critical Threat Checkboxes</label>
+                                <div class="form-check mb-2">
+                                    {{ form.requests_payment(class="form-check-input") }}
+                                    <label class="form-check-label small fw-semibold text-danger" for="{{ form.requests_payment.id }}">
+                                        Employer asked for money, training fees, or equipment deposit.
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    {{ form.requests_sensitive_info(class="form-check-input") }}
+                                    <label class="form-check-label small fw-semibold text-danger" for="{{ form.requests_sensitive_info.id }}">
+                                        Employer requested banking passwords, OTP, or debit card PIN.
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <label for="{{ form.additional_notes.id }}" class="form-label">
+                                    {{ form.additional_notes.label }}
+                                </label>
+                                {{ form.additional_notes(class="form-control", rows=2, placeholder="Any additional notes or strange behaviors (e.g. recruiter urged response in 1 hour)") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submission Button -->
+                    <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('analysis.dashboard') }}" class="btn btn-saas-outline">Cancel</a>
+                        <button type="submit" id="submitAnalyzeBtn" class="btn btn-saas-accent btn-lg px-4">
+                            <i class="bi bi-shield-check me-1"></i> Analyze Job Posting
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

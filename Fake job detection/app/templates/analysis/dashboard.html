@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Header with Welcome & CTA -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome back, {{ current_user.full_name }}</h2>
+            <p class="text-muted small mb-0">Here is the security posture summary for your evaluated job postings.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent">
+                <i class="bi bi-plus-circle me-1"></i> Analyze New Job
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Metrics Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon total"><i class="bi bi-journal-text"></i></div>
+                <div>
+                    <div class="stat-value">{{ total_count }}</div>
+                    <div class="stat-label">Total Screenings</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon high"><i class="bi bi-shield-x"></i></div>
+                <div>
+                    <div class="stat-value">{{ high_count }}</div>
+                    <div class="stat-label">High Risk</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon medium"><i class="bi bi-shield-exclamation"></i></div>
+                <div>
+                    <div class="stat-value">{{ medium_count }}</div>
+                    <div class="stat-label">Needs Verification</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon low"><i class="bi bi-shield-check"></i></div>
+                <div>
+                    <div class="stat-value">{{ low_count }}</div>
+                    <div class="stat-label">Lower Risk</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if total_count > 0 %}
+        <!-- Analytics & Chart Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Distribution Chart -->
+            <div class="col-lg-5">
+                <div class="saas-card h-100">
+                    <div class="saas-card-header">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-pie-chart me-2 text-cyan"></i>Risk Distribution</h5>
+                    </div>
+                    <div style="height: 250px; position: relative;">
+                        <canvas id="riskDistributionChart" 
+                                data-high="{{ high_count }}" 
+                                data-medium="{{ medium_count }}" 
+                                data-low="{{ low_count }}">
+                        </canvas>
+                    </div>
+                    <div class="mt-3 text-center text-muted small">
+                        Visualizing aggregated risk across {{ total_count }} processed evaluations.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Reminder Card -->
+            <div class="col-lg-7">
+                <div class="saas-card h-100">
+                    <div class="saas-card-header">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-shield-shaded me-2 text-cyan"></i>Job-Search Safety Checklist</h5>
+                    </div>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="d-flex gap-3">
+                            <i class="bi bi-check2-circle text-success fs-4"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Verify Recruiter Domain Match</h6>
+                                <p class="text-muted small mb-0">Always verify that recruiter contact addresses match official corporate domains, never generic free email services.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <i class="bi bi-check2-circle text-success fs-4"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Never Send Advance Deposits</h6>
+                                <p class="text-muted small mb-0">Legitimate companies never demand money for background checks, laptops, or onboarding materials.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <i class="bi bi-check2-circle text-success fs-4"></i>
+                            <div>
+                                <h6 class="fw-semibold mb-1">Refuse Chat-Only Instant Offers</h6>
+                                <p class="text-muted small mb-0">Insist on live video or in-person interviews before sharing personal resume documentation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Analyses Table -->
+        <div class="saas-card">
+            <div class="saas-card-header">
+                <h5 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-cyan"></i>Recent Analyses</h5>
+                <a href="{{ url_for('analysis.history') }}" class="btn btn-saas-outline btn-sm">
+                    View All History <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="saas-table">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Date Evaluated</th>
+                            <th>Risk Score</th>
+                            <th>Category</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_analyses %}
+                            <tr>
+                                <td class="fw-semibold">{{ item.job_title }}</td>
+                                <td class="text-secondary">{{ item.company_name }}</td>
+                                <td class="text-muted small">{{ item.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <span class="fw-bold {% if item.risk_score >= thresh_high %}text-danger{% elif item.risk_score >= thresh_low %}text-warning{% else %}text-success{% endif %}">
+                                        {{ item.risk_score }} / 100
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if item.risk_score >= thresh_high %}
+                                        <span class="badge-risk-high"><i class="bi bi-exclamation-triangle-fill"></i> Potentially Suspicious</span>
+                                    {% elif item.risk_score >= thresh_low %}
+                                        <span class="badge-risk-medium"><i class="bi bi-exclamation-circle-fill"></i> Needs Verification</span>
+                                    {% else %}
+                                        <span class="badge-risk-low"><i class="bi bi-check-circle-fill"></i> Lower Risk</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ url_for('analysis.result', analysis_id=item.id) }}" class="btn btn-sm btn-saas-outline">
+                                        <i class="bi bi-file-earmark-text me-1"></i> Report
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty State When User Has No Records -->
+        <div class="saas-card empty-state my-4">
+            <div class="empty-state-icon">
+                <i class="bi bi-search"></i>
+            </div>
+            <h4 class="fw-bold mb-2">No Job Analyses Yet</h4>
+            <p class="text-muted mx-auto mb-4" style="max-width: 460px;">
+                You have not analyzed any job postings yet. Paste the details of any internship or job opening to evaluate its threat level.
+            </p>
+            <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent btn-lg px-4">
+                <i class="bi bi-shield-check me-1"></i> Run Your First Analysis
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}403 Forbidden - Fake Job Detection{% endblock %}
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="saas-card mx-auto p-5" style="max-width: 550px;">
+        <div class="empty-state-icon text-danger mb-3">
+            <i class="bi bi-shield-slash fs-1"></i>
+        </div>
+        <h2 class="h3 fw-bold mb-2">403 - Access Denied</h2>
+        <p class="text-muted mb-4">You do not have permission to access this resource or modify records that do not belong to you.</p>
+        <div class="d-flex justify-content-center gap-2">
+            <a href="{{ url_for('analysis.dashboard') if current_user.is_authenticated else url_for('main.index') }}" class="btn btn-saas-primary">
+                <i class="bi bi-arrow-left me-1"></i> Go Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

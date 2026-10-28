@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Risk Assessment Report - {{ analysis.job_title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Top Action Bar -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a href="{{ url_for('analysis.history') }}" class="btn btn-sm btn-saas-outline">
+                    <i class="bi bi-arrow-left me-1"></i> Back to History
+                </a>
+                <span class="text-muted small">Report ID: #{{ analysis.id }} &bull; Generated on {{ analysis.created_at.strftime('%b %d, %Y at %H:%M UTC') }}</span>
+            </div>
+            <h2 class="fw-bold mb-0">{{ analysis.job_title }}</h2>
+            <div class="text-secondary fw-semibold">{{ analysis.company_name }}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="printReportBtn" class="btn btn-saas-outline">
+                <i class="bi bi-printer me-1"></i> Print / Save PDF
+            </button>
+            <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent">
+                <i class="bi bi-search me-1"></i> Analyze Another Job
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Score & Summary Card -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="risk-meter-wrapper h-100 d-flex flex-column justify-content-center">
+                <div class="text-uppercase text-muted fw-bold small mb-2">Overall Risk Score</div>
+                
+                <div class="risk-score-display {% if analysis.risk_score >= thresh_high %}text-danger{% elif analysis.risk_score >= thresh_low %}text-warning{% else %}text-success{% endif %}">
+                    {{ "%.1f"|format(analysis.risk_score) }}
+                </div>
+                <div class="text-muted small">out of 100 possible risk points</div>
+
+                <!-- Visual Meter Bar -->
+                <div class="risk-progress-bar">
+                    <div class="risk-progress-fill {% if analysis.risk_score >= thresh_high %}risk-fill-high{% elif analysis.risk_score >= thresh_low %}risk-fill-medium{% else %}risk-fill-low{% endif %}" 
+                         style="width: {{ analysis.risk_score }}%;">
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    {% if analysis.risk_score >= thresh_high %}
+                        <span class="badge-risk-high fs-6 py-2 px-3">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Potentially Suspicious
+                        </span>
+                    {% elif analysis.risk_score >= thresh_low %}
+                        <span class="badge-risk-medium fs-6 py-2 px-3">
+                            <i class="bi bi-exclamation-circle-fill"></i> Needs Further Verification
+                        </span>
+                    {% else %}
+                        <span class="badge-risk-low fs-6 py-2 px-3">
+                            <i class="bi bi-check-circle-fill"></i> Lower Risk Indicators
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if analysis.ml_confidence %}
+                    <div class="text-muted small mt-3 border-top pt-2">
+                        ML Model Confidence: <strong>{{ "%.1f"|format(analysis.ml_confidence) }}%</strong>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Job Context Overview -->
+        <div class="col-lg-8">
+            <div class="saas-card h-100">
+                <div class="saas-card-header">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-briefcase me-2 text-cyan"></i>Submission Summary</h5>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Job Title:</span>
+                        <strong class="text-dark">{{ analysis.job_title }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Company Name:</span>
+                        <strong class="text-dark">{{ analysis.company_name }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Employment Type:</span>
+                        <span class="text-dark">{{ (analysis.employment_type or 'Not specified')|replace('_', ' ')|title }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Location:</span>
+                        <span class="text-dark">{{ analysis.job_location or 'Not specified' }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Stated Compensation:</span>
+                        <span class="text-dark">{{ analysis.salary_info or 'Not specified' }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small d-block">Interview Format:</span>
+                        <span class="text-dark">{{ (analysis.interview_mode or 'Standard')|replace('_', ' ')|title }}</span>
+                    </div>
+                    {% if analysis.company_url %}
+                        <div class="col-12">
+                            <span class="text-muted small d-block">Company / Posting Link:</span>
+                            <span class="small text-truncate d-block font-monospace">{{ analysis.company_url }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if analysis.additional_notes %}
+                    <div class="mt-3 pt-3 border-top">
+                        <span class="text-muted small d-block">Candidate Notes:</span>
+                        <p class="small text-secondary mb-0">{{ analysis.additional_notes }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Red Flag Threat Indicators -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-shield-exclamation text-danger me-2"></i>
+                Detected Risk Indicators ({{ analysis.detected_indicators|length }})
+            </h5>
+        </div>
+
+        {% if analysis.detected_indicators %}
+            <div class="indicators-list">
+                {% for ind in analysis.detected_indicators %}
+                    <div class="indicator-card {{ ind.severity }}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                {% if ind.severity == 'high' %}
+                                    <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+                                {% elif ind.severity == 'medium' %}
+                                    <i class="bi bi-exclamation-circle-fill text-warning me-1"></i>
+                                {% else %}
+                                    <i class="bi bi-info-circle-fill text-secondary me-1"></i>
+                                {% endif %}
+                                {{ ind.title }}
+                            </h6>
+                            <span class="badge {% if ind.severity == 'high' %}bg-danger{% elif ind.severity == 'medium' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                                {{ ind.severity|title }} Severity (+{{ ind.weight|int }} pts)
+                            </span>
+                        </div>
+                        <p class="text-secondary small mb-2">{{ ind.explanation }}</p>
+                        
+                        {% if ind.evidence %}
+                            <div class="small fw-semibold text-muted">Evidence from submission:</div>
+                            {% for quote in ind.evidence %}
+                                <div class="evidence-quote">
+                                    <i class="bi bi-quote"></i> {{ quote }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-success border-0 shadow-xs mb-0">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                No overt fraudulent patterns or keyword red flags were identified in the submitted description text.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Positive Indicators -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-shield-check text-success me-2"></i>
+                Positive Signals & Verification Factors ({{ analysis.positive_indicators|length }})
+            </h5>
+        </div>
+
+        {% if analysis.positive_indicators %}
+            <div class="row g-3">
+                {% for pos in analysis.positive_indicators %}
+                    <div class="col-md-6">
+                        <div class="indicator-card positive h-100">
+                            <h6 class="fw-bold text-success mb-1">
+                                <i class="bi bi-check-circle-fill me-1"></i> {{ pos.title }}
+                            </h6>
+                            <p class="text-secondary small mb-0">{{ pos.description }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted small mb-0">
+                No verified positive corporate indicators (such as multi-stage interview confirmation or detailed departmental structure) were recorded.
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Recommended Verification Next Steps -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <h5 class="fw-bold mb-0"><i class="bi bi-list-check text-cyan me-2"></i>Recommended Verification Steps</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for action in analysis.recommended_actions %}
+                <li class="list-group-item d-flex align-items-start gap-2 px-0 py-2">
+                    <i class="bi bi-arrow-right-circle text-primary mt-1"></i>
+                    <span class="small text-secondary">{{ action }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Full Job Description Expandable -->
+    <div class="saas-card mb-4">
+        <div class="saas-card-header">
+            <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text me-2 text-cyan"></i>Analyzed Text Content</h5>
+        </div>
+        <div class="p-3 bg-light rounded-3 font-monospace small text-secondary" style="max-height: 250px; overflow-y: auto; white-space: pre-wrap;">{{ analysis.job_description }}</div>
+    </div>
+
+    <!-- Mandatory Legal / Automated Assessment Disclaimer -->
+    <div class="alert alert-warning border-0 shadow-xs p-4">
+        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-exclamation-octagon me-2 text-warning"></i>Automated Assessment Disclaimer</h6>
+        <p class="small text-secondary mb-0">
+            This risk evaluation is generated via automated statistical NLP analysis and heuristic pattern matching. It serves as a candidate screening aid, not conclusive proof of fraud or legitimacy. Always independently verify employers through official corporate registries and direct communication.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

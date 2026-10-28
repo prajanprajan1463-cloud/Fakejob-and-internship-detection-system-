@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Account Profile - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar Summary -->
+        <div class="col-lg-4 mb-4">
+            <div class="saas-card text-center p-4">
+                <div class="mb-3">
+                    <span class="badge bg-primary rounded-circle p-3 fs-3">
+                        <i class="bi bi-person"></i>
+                    </span>
+                </div>
+                <h4 class="fw-bold mb-1">{{ current_user.full_name }}</h4>
+                <p class="text-muted small mb-3">{{ current_user.email }}</p>
+                <div class="d-inline-block">
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        Role: <strong>{{ current_user.role.title() }}</strong>
+                    </span>
+                </div>
+                <hr class="my-4">
+                <div class="text-start small text-muted">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Member Since:</span>
+                        <strong class="text-dark">{{ current_user.created_at.strftime('%b %d, %Y') }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Total Analyses:</span>
+                        <strong class="text-dark">{{ analyses_count }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Settings Column -->
+        <div class="col-lg-8">
+            <!-- Update Name Card -->
+            <div class="saas-card mb-4">
+                <div class="saas-card-header">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-person-gear me-2 text-cyan"></i>Personal Information</h5>
+                </div>
+                <form method="POST">
+                    {{ profile_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="{{ profile_form.full_name.id }}" class="form-label">{{ profile_form.full_name.label }}</label>
+                        {{ profile_form.full_name(class="form-control" + (" is-invalid" if profile_form.full_name.errors else "")) }}
+                        {% if profile_form.full_name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in profile_form.full_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="text" class="form-control bg-light" value="{{ current_user.email }}" readonly disabled>
+                        <div class="form-text small">Account email is tied to your historical records and cannot be changed directly.</div>
+                    </div>
+                    {{ profile_form.submit(class="btn btn-saas-primary") }}
+                </form>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="saas-card mb-4">
+                <div class="saas-card-header">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-lock me-2 text-cyan"></i>Security & Password</h5>
+                </div>
+                <form method="POST">
+                    {{ password_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label for="{{ password_form.current_password.id }}" class="form-label">{{ password_form.current_password.label }}</label>
+                        {{ password_form.current_password(class="form-control" + (" is-invalid" if password_form.current_password.errors else ""), placeholder="••••••••") }}
+                        {% if password_form.current_password.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in password_form.current_password.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ password_form.new_password.id }}" class="form-label">{{ password_form.new_password.label }}</label>
+                            {{ password_form.new_password(class="form-control" + (" is-invalid" if password_form.new_password.errors else ""), placeholder="Min 8 chars with letter & number") }}
+                            {% if password_form.new_password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in password_form.new_password.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ password_form.confirm_new_password.id }}" class="form-label">{{ password_form.confirm_new_password.label }}</label>
+                            {{ password_form.confirm_new_password(class="form-control" + (" is-invalid" if password_form.confirm_new_password.errors else ""), placeholder="Confirm new password") }}
+                            {% if password_form.confirm_new_password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in password_form.confirm_new_password.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {{ password_form.submit(class="btn btn-saas-outline") }}
+                </form>
+            </div>
+
+            <!-- Danger Zone Card -->
+            <div class="saas-card border-danger">
+                <div class="saas-card-header border-danger">
+                    <h5 class="fw-bold text-danger mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Danger Zone</h5>
+                </div>
+                <p class="text-muted small">
+                    Permanently delete your account and all associated job analysis reports. This action cannot be reversed.
+                </p>
+                <button type="button" class="btn btn-saas-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                    <i class="bi bi-trash3 me-1"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Delete Account Confirmation -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-labelledby="deleteAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteAccountModalLabel"><i class="bi bi-shield-x me-2"></i>Confirm Account Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {{ delete_form.hidden_tag() }}
+                <div class="modal-body">
+                    <p class="text-danger fw-semibold">
+                        Warning: This will permanently delete your account, session credentials, and all recorded job analyses.
+                    </p>
+                    <div class="mb-3">
+                        <label for="{{ delete_form.current_password.id }}" class="form-label">{{ delete_form.current_password.label }}</label>
+                        {{ delete_form.current_password(class="form-control", placeholder="Enter your current password") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ delete_form.confirm_phrase.id }}" class="form-label">Type <code>DELETE</code> to confirm</label>
+                        {{ delete_form.confirm_phrase(class="form-control", placeholder="DELETE") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    {{ delete_form.submit(class="btn btn-danger") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}JobSafeGuard - Detect Fake Jobs & Internship Scams{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <span class="badge bg-dark border border-secondary text-info px-3 py-2 rounded-pill mb-3">
+                    <i class="bi bi-shield-lock me-1"></i> Proactive Employment Fraud Defense
+                </span>
+                <h1 class="hero-heading">Detect Fake Jobs Before They Cost You.</h1>
+                <p class="hero-subtitle mx-auto">
+                    A cybersecurity-driven screening system designed to help students, recent graduates, and job seekers identify fraudulent job postings, advance-fee scams, and identity harvesting before applying.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent btn-lg px-4">
+                            <i class="bi bi-search me-1"></i> Analyze a Job
+                        </a>
+                        <a href="{{ url_for('analysis.dashboard') }}" class="btn btn-saas-outline text-white btn-lg px-4">
+                            <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-saas-accent btn-lg px-4">
+                            <i class="bi bi-arrow-right-circle me-1"></i> Analyze a Job
+                        </a>
+                        <a href="{{ url_for('main.how_it_works') }}" class="btn btn-saas-outline text-white btn-lg px-4">
+                            <i class="bi bi-info-circle me-1"></i> Learn How It Works
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Features Section -->
+<section class="py-5" id="features">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase text-muted fw-bold letter-spacing-1">Capabilities</h6>
+            <h2 class="fw-bold">Multi-Layered Detection Engine</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                Combining natural language processing with explainable heuristic red-flag verification to deliver structured risk assessments.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="saas-card h-100 saas-card-hover">
+                    <div class="stat-icon total mb-3">
+                        <i class="bi bi-file-text"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Description NLP Analysis</h5>
+                    <p class="text-muted small mb-0">
+                        Evaluates linguistic patterns, syntax, word distributions, and TF-IDF feature vectors against known fraudulent posting signatures.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="saas-card h-100 saas-card-hover">
+                    <div class="stat-icon high mb-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Advance-Fee Detection</h5>
+                    <p class="text-muted small mb-0">
+                        Flags demands for upfront registration fees, mandatory paid training kits, equipment deposits, or software licenses before hiring.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="saas-card h-100 saas-card-hover">
+                    <div class="stat-icon medium mb-3">
+                        <i class="bi bi-speedometer"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Explainable Risk Scoring</h5>
+                    <p class="text-muted small mb-0">
+                        Translates detected indicators into a clear 0–100 risk score with documented evidence quotes, avoiding black-box assertions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="saas-card h-100 saas-card-hover">
+                    <div class="stat-icon low mb-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Safety Guidance</h5>
+                    <p class="text-muted small mb-0">
+                        Provides actionable candidate verification steps, domain investigation tips, and corporate cross-referencing techniques.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white border-top border-bottom border-light">
+    <div class="container py-3">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase text-muted fw-bold">Step-by-Step Workflow</h6>
+            <h2 class="fw-bold">How The Verification Works</h2>
+            <p class="text-muted mx-auto" style="max-width: 580px;">
+                Three straightforward steps to screen any questionable job posting or interview invitation.
+            </p>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="step-number mx-auto">1</div>
+                    <h5 class="fw-bold mb-2">Paste Job Details</h5>
+                    <p class="text-muted small">
+                        Input the job title, company name, communication text, salary claim, and optional structural interview details into the form.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="step-number mx-auto">2</div>
+                    <h5 class="fw-bold mb-2">AI & Heuristic Processing</h5>
+                    <p class="text-muted small">
+                        The text is preprocessed, normalized, and checked across rule-based threat indicators and a Scikit-learn TF-IDF classifier.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3">
+                    <div class="step-number mx-auto">3</div>
+                    <h5 class="fw-bold mb-2">Comprehensive Risk Report</h5>
+                    <p class="text-muted small">
+                        Receive a transparent risk score (0-100), key detected red flags with exact evidence snippets, and recommended safety steps.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Scam Warning Signs Section -->
+<section class="py-5">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase text-muted fw-bold">Threat Awareness</h6>
+            <h2 class="fw-bold">Common Job Scam Warning Signs</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">
+                Stay alert for these frequent tactics employed by fraudulent recruitment operations.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="saas-card d-flex gap-3 align-items-start">
+                    <div class="text-danger fs-3"><i class="bi bi-cash-stack"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Upfront Payment Demands</h6>
+                        <p class="text-muted small mb-0">
+                            Demands for registration fees, training deposits, or purchasing work equipment from a specified vendor are fraudulent.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="saas-card d-flex gap-3 align-items-start">
+                    <div class="text-danger fs-3"><i class="bi bi-chat-dots"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Interviews Exclusively on Chat Apps</h6>
+                        <p class="text-muted small mb-0">
+                            Legitimate companies conduct structured interviews via video or phone. Unofficial Telegram or WhatsApp channels are red flags.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="saas-card d-flex gap-3 align-items-start">
+                    <div class="text-warning fs-3"><i class="bi bi-envelope-exclamation"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Free Webmail Addresses</h6>
+                        <p class="text-muted small mb-0">
+                            Recruiters claiming to represent enterprise tech firms while emailing from generic @gmail.com or @yahoo.com accounts are impostors.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="saas-card d-flex gap-3 align-items-start">
+                    <div class="text-warning fs-3"><i class="bi bi-award"></i></div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Instant Job Offers Without Screening</h6>
+                        <p class="text-muted small mb-0">
+                            Unsolicited job offer letters sent without any resume review, portfolio inspection, or technical evaluation are high-risk.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 text-center">
+            <a href="{{ url_for('main.safety_tips') }}" class="btn btn-saas-outline">
+                <i class="bi bi-journal-text me-1"></i> Read Full Candidate Safety Guide
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 bg-white border-top">
+    <div class="container text-center py-4">
+        <div class="saas-card p-5 mx-auto bg-body border-0 shadow-sm" style="max-width: 850px;">
+            <h2 class="fw-bold mb-3">Ready to verify a suspicious job opening?</h2>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 550px;">
+                Protect yourself from recruitment fraud. Start by pasting the description and examining the risk indicators.
+            </p>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('analysis.analyze') }}" class="btn btn-saas-accent btn-lg px-4">
+                    <i class="bi bi-shield-check me-1"></i> Analyze a Job Now
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-saas-accent btn-lg px-4">
+                    <i class="bi bi-person-plus me-1"></i> Create Free Account
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+

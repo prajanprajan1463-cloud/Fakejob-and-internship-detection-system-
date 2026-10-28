@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}How It Works - Fake Job & Internship Detection System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <span class="badge bg-secondary text-white px-3 py-2 rounded-pill mb-2">Technical Overview</span>
+        <h1 class="fw-bold">How The Detection Engine Works</h1>
+        <p class="text-muted mx-auto" style="max-width: 650px;">
+            A dual-engine approach uniting rule-based heuristic patterns with machine learning text classification for transparent, explainable threat scoring.
+        </p>
+    </div>
+
+    <!-- Pipeline Stages -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="saas-card h-100">
+                <div class="stat-icon total mb-3"><i class="bi bi-file-earmark-code"></i></div>
+                <h5 class="fw-bold">1. Text Normalization</h5>
+                <p class="text-muted small">
+                    Strips HTML injection, normalizes Unicode character sets, removes extraneous whitespaces, and normalizes contact handles and links for tokenization.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="saas-card h-100">
+                <div class="stat-icon high mb-3"><i class="bi bi-regex"></i></div>
+                <h5 class="fw-bold">2. Heuristic Rules</h5>
+                <p class="text-muted small">
+                    Evaluates regex signatures targeting advance fees, fake cashier checks, cryptocurrency payments, Telegram/WhatsApp-only screening, and urgency tactics.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="saas-card h-100">
+                <div class="stat-icon medium mb-3"><i class="bi bi-cpu"></i></div>
+                <h5 class="fw-bold">3. Scikit-learn TF-IDF</h5>
+                <p class="text-muted small">
+                    Converts vocabulary into n-gram TF-IDF vectors (1-2 grams) evaluated through a calibrated Logistic Regression classifier to calculate probability of fraud.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <div class="saas-card h-100">
+                <div class="stat-icon low mb-3"><i class="bi bi-shield-check"></i></div>
+                <h5 class="fw-bold">4. Score Synthesis</h5>
+                <p class="text-muted small">
+                    Fuses heuristic evidence (60%) and ML prediction (40%), bounds score to 0–100, enforces safety floors for critical red flags, and extracts evidence.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mathematical Formula & Thresholds Card -->
+    <div class="saas-card mb-5">
+        <h4 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-cyan"></i>Scoring Methodology & Thresholds</h4>
+        <p class="text-muted">
+            To prevent false sense of security or runaway penalties, our multi-factor scoring algorithm applies diminishing marginal penalties to cumulative red flags while enforcing non-negotiable safety floors for confirmed advance-fee demands.
+        </p>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-light">
+                    <div class="badge-risk-low mb-2"><i class="bi bi-check-circle"></i> 0 – 29 Points</div>
+                    <h6 class="fw-bold mb-1">Lower Risk Indicators</h6>
+                    <p class="text-muted small mb-0">
+                        Posting conforms to standard recruitment standards. No overt scam keywords or payment solicitations identified.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-light">
+                    <div class="badge-risk-medium mb-2"><i class="bi bi-exclamation-circle"></i> 30 – 59 Points</div>
+                    <h6 class="fw-bold mb-1">Needs Further Verification</h6>
+                    <p class="text-muted small mb-0">
+                        Contains cautionary indicators such as free webmail recruitment, chat-only communications, or unusually high pay for entry-level work.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="p-3 border rounded-3 bg-light">
+                    <div class="badge-risk-high mb-2"><i class="bi bi-exclamation-triangle"></i> 60 – 100 Points</div>
+                    <h6 class="fw-bold mb-1">Potentially Suspicious</h6>
+                    <p class="text-muted small mb-0">
+                        Contains critical fraud indicators such as upfront fee requests, cashier's check equipment schemes, or bank credential harvesting.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Educational Transparency Notice -->
+    <div class="alert alert-info border-0 shadow-xs p-4 mb-4">
+        <h5 class="fw-bold"><i class="bi bi-info-circle me-2"></i>Academic Project & Verification Notice</h5>
+        <p class="mb-2">
+            This project was engineered for an undergraduate BCA capstone demonstration. While the detection engine implements verified heuristic signatures and machine learning models, no automated system can guarantee 100% scam detection or business verification.
+        </p>
+        <p class="mb-0 small text-muted">
+            Job seekers should always cross-reference openings directly on official corporate portals, inspect corporate domain registration records, and report suspicious communications to cybercrime authorities.
+        </p>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('analysis.analyze') if current_user.is_authenticated else url_for('auth.register') }}" class="btn btn-saas-accent btn-lg px-4">
+            <i class="bi bi-shield-check me-1"></i> Start An Analysis
+        </a>
+    </div>
+</div>
+{% endblock %}
+
